@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 ## install packages if necessary
-list.of.packages <- c("janitor", "ggplot2", "dplyr", "lubridate", "zoo", "forcats", "ggthemes", "knitr", "rmarkdown")
+list.of.packages <- c("janitor", "ggplot2", "dplyr", "lubridate", "zoo", "forcats", "ggthemes", "knitr", "rmarkdown", "skimr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -20,9 +20,10 @@ library(zoo)
 library(forcats)
 library(ggthemes)
 library(knitr)
+library(skimr)
 
 ## set working directory
-knitr::opts_knit$set(root.dir = '/cloud/project')
+knitr::opts_knit$set(root.dir = '/cloud/project/CBDS_final_project')
 ```
 
 ### The Data
@@ -60,12 +61,19 @@ atus.all <- atus.sum %>%
 
 ```{r initial-exploration}
 ### Add Code Here
+
+skim(atus.all)
+
+#Q3 How much time, on average, does a person in the sample spend on “Socializing and communicating with others”? # var code: t120101
+atus.all %>% summarise(avg = mean(t120101))
+
+
 ```
 
 
 ```{r creating-childcare-var}
 atus.all <- atus.all %>% 
-    mutate(CHILDCARE = )
+    mutate(CHILDCARE = atus.all %>% select(starts_with("t0301")) %>% rowSums())
 ```
 
 ```{r childcare-density-plot}
