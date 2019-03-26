@@ -97,8 +97,8 @@ atus.all %>%
 
 ```{r replacing-na}
 ## replace -1 in the variable TRDPFTPT with NA.
-atus.all <- atus.all %>%
-  mutate(TRDPFTPT = case_when(TRDPFTPT == -1 ~ NA))
+atus.all <- atus.all %>% 
+    mutate(TRDPFTPT = ifelse(.$TRDPFTPT == -1, NA, TRDPFTPT))
 
 skim(atus.all$TRDPFTPT)
 ```
@@ -148,9 +148,6 @@ atus.all %>%
   geom_bar(stat = "identity")
 
 #Doesn't look like there's a pattern at all. So no, income doesnt seem to affect time spent with kids
-  
-
-
 
 # - Do married couples spend more time with their children compared to single parents?
 
@@ -167,13 +164,17 @@ atus.all %>%
 #Unmarried couples spend less time with their kids!
 
 # - Do full-time workers spend more time with their children compared to part-time workers?
-#Variable PEHRFTPT
-atus.all %>% 
-  filter(TRCHILDNUM > 0,
-         PEHRFTPT) %>% 
-  
-  
+#Variable TRDPFTPT
 
+atus.all %>%
+  filter(TRCHILDNUM > 0,
+         !is.na(TRDPFTPT)) %>%
+  mutate(TRDPFTPT = case_when(TRDPFTPT == 1 ~"full time",
+                              TRUE ~ "part time")) %>% 
+  group_by(TRDPFTPT) %>%
+  summarize(avg = mean(CHILDCARE))
+
+#no diff
 
 ```
 
@@ -181,7 +182,22 @@ atus.all %>%
 
 ```{r reg-analysis}
 ## add your regression analysis code here
-reg_model <- lm()
+
+reg.atus.all <- atus.all %>% 
+  filter(TRCHILDNUM > 0) #,
+  #        !is.na(TRDPFTPT),
+  #        PEMARITL %in% c(1,2,6)) %>%
+  # mutate(TRDPFTPT = case_when(TRDPFTPT == 1 ~"full time",
+  #                             TRUE ~ "part time"),
+  #        PEMARITL = case_when(PEMARITL == 6 ~ "single",
+  #                               TRUE ~ "married"),
+  #        PESEX = case_when(PESEX == 1 ~ "male",
+  #                          TRUE ~ "female"),
+  #        HEFAMINC = factor(HEFAMINC)) 
+
+# Run a linear regression of marital status, age, sex, number of children (18 or younger), earnings, and full-time versus part-time status
+
+reg_model <- lm(CHILDCARE ~ PEMARITL + PRTAGE + PESEX + TRCHILDNUM + HEFAMINC + TRDPFTPT, data = reg.atus.all)
 summary(reg_model)
 ```
 
