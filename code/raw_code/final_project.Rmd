@@ -77,22 +77,104 @@ atus.all <- atus.all %>%
 ```
 
 ```{r childcare-density-plot}
-ggplot(atus.all) +
-    geom_density()
+ggplot(atus.all, aes(x = CHILDCARE)) +
+  geom_density() +
+  ggthemes::theme_fivethirtyeight() +
+  theme(panel.grid.major = element_blank()) +
+  theme(axis.title = element_text(size = 16)) +
+  theme(axis.text = element_text(size = 14)) +
+  labs(title = "“Caring For & Helping HH Children” distribution",
+       subtitle = "Based on the sum of all activities starting with t0301",
+       x = "Sum of t0301 activities",
+       y = "Density")
 ```
 
 ```{r gender-analysis}
 atus.all %>% 
-    group_by() %>% 
-    FUNCTION()
+  group_by(PESEX) %>% 
+  summarise(avg_time_childcare = mean(CHILDCARE))
 ```
 
 ```{r replacing-na}
 ## replace -1 in the variable TRDPFTPT with NA.
+atus.all <- atus.all %>%
+  mutate(TRDPFTPT = case_when(TRDPFTPT == -1 ~ NA))
+
+skim(atus.all$TRDPFTPT)
 ```
 
 ```{r exploratory-analysis}
 ## add your exploratory analysis code here
+
+## Questions
+# - Do younger parents spend more time with their children?
+
+#Variable coding age: PRTAGE
+#Looking at age distribution
+atus.all %>% 
+  filter(TRCHILDNUM > 0) %>% 
+  ggplot() + 
+  geom_density(aes(PRTAGE))
+
+#looking at general pattern
+
+atus.all %>% 
+  filter(TRCHILDNUM > 0) %>% 
+  group_by(PRTAGE) %>% 
+  summarize(avg = mean(CHILDCARE)) %>% 
+  ggplot(aes(x = PRTAGE, y = avg)) +
+  geom_point()
+
+#time spent with kids seem to peak when parents are in their 30s
+  
+
+# - Do richer people spend more time with their children compared to poorer people?
+# Even though it was coded as numbers, HEFAMINC is factor; each number correspondes to an income range.
+
+#Looking at HEFAMINC distribution:
+
+atus.all %>% 
+  filter(TRCHILDNUM > 0) %>% 
+  ggplot() + 
+  geom_histogram(aes(x = HEFAMINC), bins = 16)
+
+#Seems left skewed… Will have a look at the the different level's avg
+
+atus.all %>% 
+  filter(TRCHILDNUM > 0) %>% 
+  group_by(HEFAMINC) %>% 
+  summarize(avg = mean(CHILDCARE)) %>% 
+  ggplot(aes(x = HEFAMINC, y = avg)) +
+  geom_bar(stat = "identity")
+
+#Doesn't look like there's a pattern at all. So no, income doesnt seem to affect time spent with kids
+  
+
+
+
+# - Do married couples spend more time with their children compared to single parents?
+
+#variable: PEMARITL
+
+atus.all %>% 
+  filter(TRCHILDNUM > 0,
+         PEMARITL %in% c(1,2,6)) %>% #Since comparison is married x single I'm keeping only married, married w/ spouse absent and never married
+  mutate(PEMARITL = case_when(PEMARITL == 6 ~ "single",
+                                TRUE ~ "married")) %>% #select(TRCHILDNUM) %>% View()
+  group_by(PEMARITL) %>% 
+  summarize(avg = mean(CHILDCARE))
+
+#Unmarried couples spend less time with their kids!
+
+# - Do full-time workers spend more time with their children compared to part-time workers?
+#Variable PEHRFTPT
+atus.all %>% 
+  filter(TRCHILDNUM > 0,
+         PEHRFTPT) %>% 
+  
+  
+
+
 ```
 
 ### Regression Analysis
